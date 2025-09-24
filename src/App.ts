@@ -12,6 +12,9 @@ export class App extends gfx.GfxApp
     private skybox: gfx.Mesh3;
     private sphere: gfx.Mesh3;
 
+    private sphereVelocity: gfx.Vector3;
+
+
     // --- Create the App class ----
     constructor()
     {
@@ -21,6 +24,8 @@ export class App extends gfx.GfxApp
         this.ground = gfx.Geometry3Factory.createBox(50, 1, 50);
         this.skybox = gfx.Geometry3Factory.createBox(100, 100, 100);
         this.sphere = gfx.Geometry3Factory.createSphere();
+
+        this.sphereVelocity = new gfx.Vector3();
 
     }
 
@@ -47,7 +52,8 @@ export class App extends gfx.GfxApp
         this.skybox.material.setColor( new gfx.Color(0.698, 1, 1))
 
         
-        this.sphere.position.set(0,1,-5);
+        this.sphere.position.set(0,3,-6);
+        this.sphereVelocity.set(0,6,0);
 
                 
         this.scene.add(this.ground);
@@ -61,6 +67,24 @@ export class App extends gfx.GfxApp
     // --- Update is called once each frame by the main graphics loop ---
     update(deltaTime: number): void 
     {
+        //set accelaration
+        const sphereAccelartion = new gfx.Vector3(0, -9.8, 0);  //accelartion m per sec per sec
+        const frictionSlowdown = 0.75;
+
+        // v_new = v_old + a * dt
+        const a_dt = gfx.Vector3.multiplyScalar(sphereAccelartion, deltaTime);
+        this.sphereVelocity.add(a_dt)
+
+        //p_new = p_old + v_new * dt
+        const v_dt = gfx.Vector3.multiplyScalar(this.sphereVelocity, deltaTime);
+        this.sphere.position.add(v_dt);
+
+        if(this.sphere.position.y < 0){
+            console.log("collision detected: ", this.sphere.position.y)
+            this.sphere.position.y = 1.0;
+            this.sphereVelocity.y *= -1.0;
+            this.sphereVelocity.multiplyScalar(frictionSlowdown);
+        }
 
     }
 }
